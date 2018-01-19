@@ -1,0 +1,177 @@
+CREATE DATABASE tripadvisor;   
+USE tripadvisor;
+
+CREATE TABLE 
+	users(user INT(4), 
+	home INT(1), 
+	gender VARCHAR(6),
+	PRIMARY KEY(user)) 
+CHARACTER SET utf8 COLLATE utf8_bin;
+LOAD DATA infile '/Users/lxu213/Documents/data/tripadvisor/users.txt' 
+INTO TABLE users FIELDS TERMINATED BY '\t' IGNORE 1 LINES;
+
+CREATE TABLE 
+	hotels(hotel INT(2), 
+	rating DECIMAL(2,1), 
+	PRIMARY KEY(hotel)) 
+CHARACTER SET utf8 COLLATE utf8_bin;
+LOAD DATA infile '/Users/lxu213/Documents/data/tripadvisor/hotels.txt' 
+INTO TABLE hotels FIELDS TERMINATED BY '\t' IGNORE 1 LINES;
+
+CREATE TABLE 
+	activity(user INT(4), 
+	hotel INT(2)) 
+CHARACTER SET utf8 COLLATE utf8_bin;
+LOAD DATA infile '/Users/lxu213/Documents/data/tripadvisor/activity.txt' 
+INTO TABLE activity FIELDS TERMINATED BY '\t' IGNORE 1 LINES;
+ALTER TABLE activity ADD INDEX (user);
+ALTER TABLE activity ADD INDEX (hotel);
+
+ALTER TABLE activity ADD gender VARCHAR(6);
+UPDATE activity a
+JOIN users b ON a.user = b.user
+SET a.gender = b.gender;
+
+ALTER TABLE activity ADD home INT(1);
+UPDATE activity a
+JOIN users b ON a.user = b.user
+SET a.home = b.home;
+
+ALTER TABLE activity ADD rating DECIMAL(2,1);
+UPDATE activity a
+JOIN hotels b ON a.hotel = b.hotel
+SET a.rating = b.rating;
+
+--------------------------------------------------
+ORGANIZE INTO MYSQL.CONNECTOR IN PYTHON EVENTUALLY
+--------------------------------------------------
+
+CREATE TABLE 
+	users_clusters_v2(user INT(4), 
+	home INT(1), 
+	gender INT(1), 
+	cluster INT(1), 
+	PRIMARY KEY(user)) 
+CHARACTER SET utf8 COLLATE utf8_bin;
+LOAD DATA infile '/Users/lxu213/Documents/data/tripadvisor/users_clusters_v2.txt' 
+INTO TABLE users_clusters_v2 FIELDS TERMINATED BY '\t' IGNORE 1 LINES;
+
+ALTER TABLE activity ADD cluster_v2 INT(1);
+UPDATE activity a
+JOIN users_clusters_v2 b ON a.user = b.user
+SET a.cluster_v2 = b.cluster;
+
+SELECT hotel, count(hotel), cluster FROM activity GROUP BY cluster, hotel;
+
+CREATE TABLE views_bycluster
+SELECT hotel, 
+	COUNT(CASE WHEN cluster = 0 THEN 1 END) AS c1, 
+	COUNT(CASE WHEN cluster = 1 THEN 1 END) AS c2, 
+	COUNT(CASE WHEN cluster = 2 THEN 1 END) AS c3, 
+	COUNT(CASE WHEN cluster = 3 THEN 1 END) AS c4, 
+	COUNT(CASE WHEN cluster = 4 THEN 1 END) AS c5, 
+	COUNT(CASE WHEN cluster = 5 THEN 1 END) AS c6, 
+	COUNT(CASE WHEN cluster = 6 THEN 1 END) AS c7, 
+	COUNT(CASE WHEN cluster = 7 THEN 1 END) AS c8, 
+	COUNT(CASE WHEN cluster = 8 THEN 1 END) AS c9, 
+	COUNT(CASE WHEN cluster = 9 THEN 1 END) AS c10
+FROM activity GROUP BY hotel;
+
+CREATE TABLE ranks(SELECT hotel as 'cl1' 
+FROM views_bycluster ORDER BY c1 DESC);
+
+ALTER TABLE ranks ADD cl2 INT(3) 
+SELECT hotel as 'cl2' FROM views_bycluster ORDER BY c2 DESC;
+SELECT hotel as 'cl3' FROM views_bycluster ORDER BY c3 DESC;
+SELECT hotel as 'cl4' FROM views_bycluster ORDER BY c4 DESC;
+
+SELECT hotel, c1 FROM views_bycluster ORDER BY c1 DESC;
+
+
+
+
+
+
+
+
+INSERT INTO pophotels_bycluster (cl3)
+    SELECT hotel as 'cl3' FROM views_bycluster ORDER BY c3 DESC;
+
+
+
+SET @index_num = 0;
+SELECT @index_num := @index_num + 1 AS rank, hotel AS 'cl1'
+FROM views_bycluster ORDER BY c1 DESC;
+
+
+SELECT hotel, c1 FROM views_bycluster ORDER BY c1 DESC;
+
+---------------------------------
+
+SET @index_num = 0;
+CREATE TABLE ranks(SELECT 
+	@index_num := @index_num + 1 AS rank,
+	hotel as 'cl1' 
+FROM views_bycluster ORDER BY c1 DESC);
+
+
+SET @index_num = 0;
+SELECT 
+	@index_num := @index_num + 1 AS rank,
+	hotel as 'cl2' 
+FROM views_bycluster ORDER BY c2 DESC;
+
+SELECT 
+	hotel as 'cl2' 
+FROM views_bycluster ORDER BY c2 DESC;
+
+ALTER TABLE ranks
+ADD COLUMN hotel INT(3) FROM views_bycluster ORDER BY c2 DESC;
+
+
+
+
+
+
+ALTER TABLE ranks ADD cl2 INT(3)
+
+
+INSERT INTO rank (cl3)
+    
+SELECT hotel FROM views_bycluster ORDER BY c2 DESC;
+
+
+
+
+SET @index_num = 0;
+CREATE TABLE test(SELECT 
+	@index_num := @index_num + 1 AS rank,
+	hotel FROM views_bycluster ORDER BY c1 DESC,
+	hotel FROM views_bycluster ORDER BY c2 DESC);
+
+CREATE TABLE test2(SELECT 
+	hotel FROM views_bycluster ORDER BY c1 DESC,
+	hotel FROM views_bycluster ORDER BY c2 DESC);
+
+SELECT hotel ORDER BY c1 DESC, hotel ORDER BY c2 DESC FROM views_bycluster;
+
+
+
+SET @index_num = 0;
+SELECT 
+	(SELECT hotel FROM views_bycluster ORDER BY c1 DESC) as "cl1", 
+	(SELECT hotel FROM views_bycluster ORDER BY c2 DESC) as "cl2"
+	etc ---> subquery error 1 row something
+FROM views_bycluster;
+
+# if I had python/mysql connector going, I would loop through in python and get the sorted hotel lists append to dataframe
+
+SELECT hotel FROM views_bycluster ORDER BY c1 DESC;
+
+
+
+
+
+
+
+

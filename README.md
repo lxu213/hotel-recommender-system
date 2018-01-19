@@ -1,2 +1,7 @@
-# interviews
-Homework problems provided during an interview process
+# Hotel Recommender System Using Collaborative Filtering
+
+This project aims to build a recommender system to predict which hotel a browsing user will click on next. Browsing history of website users' hotel interests, user's gender, geographic location, and star rating of the hotel is provided. 
+
+First attempt uses a k-means clustering model for the prediction that groups users with similar hotel views in the same cluster. The hotel views were vectorized into binary values that represent which hotels were viewed and cluster accordingly. However, some exploratory data analysis showed that user viewing behavior is more continuous than discrete. In other words, an individual's hotel views don't fall nicely into distinct buckets.
+
+A better approach is one that can rank or give some type of score to individual hotels and similar users. Collaborative filtering, which uses past history of similar users, can recommend a new hotel view based on these past recommendations. I took a user-based approach and built a similarity matrix (cosine distance) between past histories of similar users' views. Using the nearest neighbor strategy, a matrix of scores was created for how "close" or correlated a user's hotel views were to its nearest neighbors and their list of hotel views.
